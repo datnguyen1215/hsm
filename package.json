@@ -3,14 +3,22 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "dev": "nodemon --watch src/ --exec \"npm run build && node --inspect dist/hsm.cjs\"",
+    "dev": "nodemon --watch src/ --watch tests/ --exec \"npm run tests\"",
     "build": "vite build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require @babel/register",
+    "tests": "npm test tests/*.test.js tests/**/*.test.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/core": "^7.25.7",
+    "@babel/preset-env": "^7.25.7",
+    "@babel/register": "^7.25.7",
+    "babel-plugin-module-resolver": "^5.0.2",
+    "chai": "^5.1.1",
+    "mocha": "^10.7.3",
     "nodemon": "^3.1.7",
     "vite": "^5.4.8"
   }
