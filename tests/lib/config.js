@@ -1,10 +1,13 @@
+import { assign } from '@dist/hsm';
+
 const config = {
   id: '#authenticationHsm',
   initial: 'unauthenticated',
+  context: { user: null },
   on: {
     LOGOUT: {
       target: 'unauthenticated',
-      actions: ['clearUserData']
+      actions: [assign({ user: null })]
     }
   },
   states: {
@@ -23,7 +26,7 @@ const config = {
       on: {
         AUTH_SUCCESS: {
           target: 'authenticated',
-          actions: ['setUser']
+          actions: [assign({ user: (context, event) => event.data.user })]
         },
         AUTH_FAILURE: {
           target: 'authFailed'
@@ -69,4 +72,4 @@ const config = {
   }
 };
 
-return config;
+export default config;

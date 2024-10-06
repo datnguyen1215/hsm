@@ -3,11 +3,10 @@
  * @param {object} obj - The object to assign the value to.
  * @returns {object} The object with the assigned value.
  */
-const assign = obj => {
+const assign = obj => context => {
   Object.entries(obj).forEach(([key, value]) => {
-    if (typeof value === 'function') newObj[key] = value();
-    else obj[key] = value;
-    return obj;
+    if (typeof value === 'function') context[key] = value();
+    else context[key] = value;
   });
 };
 

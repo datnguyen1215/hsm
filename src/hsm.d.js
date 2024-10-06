@@ -13,7 +13,7 @@
  * @property {string} [initial]
  * @property {string[]} [entry]
  * @property {string[]} exit
- * @property {Object.<string, hsm.EventConfig | hsm.EventConfig[]} [on]
+ * @property {Object.<string, hsm.EventConfig | hsm.EventConfig[]>} [on]
  * @property {hsm.EventConfig | hsm.EventConfig[]} [always]
  * @property {Object.<string, hsm.StateConfig>} [states]
  */
