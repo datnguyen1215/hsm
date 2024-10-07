@@ -34,9 +34,11 @@ class EventNode {
    * @returns {object} The results of the actions.
    */
   execute(context, event) {
-    return this.actions
-      .map(x => ({ [x.name]: x.execute(context, event) }))
-      .reduce((acc, x) => ({ ...acc, ...x }), {});
+    return this.actions.map(x => ({
+      state: this.event.state.name,
+      action: x.name,
+      output: x.execute(context, event)
+    }));
   }
 }
 

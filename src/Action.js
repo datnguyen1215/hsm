@@ -1,10 +1,12 @@
 class Action {
   constructor({ machine, name }) {
     this.machine = machine;
-    this.name = name.toString();
+    this.name = name;
 
-    if (typeof name === 'function') this.func = name;
-    else this.func = machine.setup.actions[name];
+    if (typeof name === 'function') {
+      this.name = 'anonymous';
+      this.func = name;
+    } else this.func = machine.setup.actions[name];
 
     if (!this.func) throw new Error(`action not found: ${name}`);
   }

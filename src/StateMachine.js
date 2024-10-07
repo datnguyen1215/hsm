@@ -19,6 +19,7 @@ class StateMachine {
     this.setup.actions = this.setup.actions || {};
     this.setup.guards = this.setup.guards || {};
 
+    /** @type {StateNode | null} */
     this.state = null;
 
     this.root = new StateNode({
@@ -51,13 +52,12 @@ class StateMachine {
     if (!result.target) return {};
 
     const exitResult = this.handleExit(result, eventName, data);
-
     const entryResult = this.transition(result.target, {
       type: eventName,
       data
     });
 
-    return { actions: result.actions, exit: exitResult, entry: entryResult };
+    return { actions: result.outputs, exit: exitResult, entry: entryResult };
   }
 
   /**
@@ -68,16 +68,13 @@ class StateMachine {
    */
   transition(state, event) {
     this.state = state;
-    let entryResults = { [state.name]: this.state.entry(event) };
+    let entryResults = this.state.entry(event);
 
     while (this.state.initial) {
       const next = this.state.states[this.state.initial];
       if (!next) return entryResults;
       this.state = next;
-      entryResults = {
-        ...entryResults,
-        [this.state.name]: this.state.entry(event)
-      };
+      entryResults = [...entryResults, this.state.entry(event)];
     }
 
     return entryResults;
@@ -106,16 +103,14 @@ class StateMachine {
     let exitResult = {};
 
     if (!result.bubbles.length)
-      exitResult = {
-        [this.state.name]: this.state.exit({ type: eventName, data })
-      };
+      exitResult = this.state.exit({ type: eventName, data });
 
     while (result.bubbles.length) {
       const bubbleState = result.bubbles.pop();
-      exitResult = {
+      exitResult = [
         ...exitResult,
-        [this.state.name]: bubbleState.exit({ type: eventName, data })
-      };
+        ...bubbleState.exit({ type: eventName, data })
+      ];
     }
 
     return exitResult;

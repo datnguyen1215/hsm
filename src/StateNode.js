@@ -45,6 +45,9 @@ class StateNode {
           name: `${name}.always`
         });
 
+    /**
+     * @type {object.<string, StateEvent>}
+     */
     this.on = Object.keys(config.on || {}).reduce((acc, x) => {
       acc[x] = new StateEvent({
         machine,
@@ -92,11 +95,11 @@ class StateNode {
    * @returns {object} Results of the entry actions.
    */
   entry(event) {
-    return this.entryActions
-      .map(x => ({
-        [x.name]: x.execute(this.machine.context, event)
-      }))
-      .reduce((acc, x) => ({ ...acc, ...x }), {});
+    return this.entryActions.map(x => ({
+      state: this.name,
+      action: x.name,
+      output: x.execute(this.machine.context, event)
+    }));
   }
 
   /**
@@ -105,11 +108,11 @@ class StateNode {
    * @returns {object} Results of the exit actions.
    */
   exit(event) {
-    return this.exitActions
-      .map(x => ({
-        [x.name]: x.execute(this.machine.context, event)
-      }))
-      .reduce((acc, x) => ({ ...acc, ...x }), {});
+    return this.exitActions.map(x => ({
+      state: this.name,
+      action: x.name,
+      output: x.execute(this.machine.context, event)
+    }));
   }
 
   /**

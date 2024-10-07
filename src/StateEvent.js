@@ -19,7 +19,7 @@ class StateEvent {
 
     if (!node) return {};
 
-    return { target: node.target, actions: node.execute(context, event) };
+    return { target: node.target, outputs: node.execute(context, event) };
   }
 }
 
