@@ -1,4 +1,5 @@
 import StateNode from './StateNode';
+import assert from './utils/assert';
 
 class StateMachine {
   /**
@@ -37,13 +38,25 @@ class StateMachine {
    * @returns {object} Results of the event dispatch.
    */
   dispatch(eventName, data = {}) {
+    assert(eventName, 'Event name is required');
+
+    if (!this.state) {
+      console.warn(
+        'State machine not started. Call start() before dispatching events.'
+      );
+      return {};
+    }
+
     const result = this.state.dispatch(eventName, data);
     if (!result.target) return {};
+
     const exitResult = this.handleExit(result, eventName, data);
+
     const entryResult = this.transition(result.target, {
       type: eventName,
       data
     });
+
     return { actions: result.actions, exit: exitResult, entry: entryResult };
   }
 
@@ -56,6 +69,7 @@ class StateMachine {
   transition(state, event) {
     this.state = state;
     let entryResults = { [state.name]: this.state.entry(event) };
+
     while (this.state.initial) {
       const next = this.state.states[this.state.initial];
       if (!next) return entryResults;
@@ -65,6 +79,7 @@ class StateMachine {
         [this.state.name]: this.state.entry(event)
       };
     }
+
     return entryResults;
   }
 
@@ -89,10 +104,12 @@ class StateMachine {
    */
   handleExit(result, eventName, data) {
     let exitResult = {};
+
     if (!result.bubbles.length)
       exitResult = {
         [this.state.name]: this.state.exit({ type: eventName, data })
       };
+
     while (result.bubbles.length) {
       const bubbleState = result.bubbles.pop();
       exitResult = {
@@ -100,6 +117,7 @@ class StateMachine {
         [this.state.name]: bubbleState.exit({ type: eventName, data })
       };
     }
+
     return exitResult;
   }
 
