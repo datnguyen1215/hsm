@@ -2,7 +2,6 @@ import EventNode from './EventNode';
 
 class StateEvent {
   constructor({ machine, config, state, name }) {
-    console.log(`creating state event: ${name}`);
     this.machine = machine;
     this.config = config;
     this.state = state;

@@ -11,10 +11,6 @@ class EventNode {
    * @param {hsm.EventConfig} options.config - Configuration for the event node.
    */
   constructor({ machine, event, config }) {
-    console.log(
-      `creating event node ${JSON.stringify(config)} for ${event.name}`
-    );
-
     if (typeof config === 'string') config = { target: config };
 
     /** @type {StateMachine} */

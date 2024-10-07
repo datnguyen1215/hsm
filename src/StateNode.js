@@ -7,18 +7,10 @@ class StateNode {
    * @param {object} options - Options for initializing the state node.
    * @param {StateMachine} options.machine - The state machine this node belongs to.
    * @param {string} options.name - The name of this state node.
-   * @param {object} options.config - Configuration object for this state node.
-   * @param {string} options.config.id - Unique identifier for this state node.
-   * @param {string} options.config.initial - Initial state name.
-   * @param {object} options.config.states - Child states configuration.
-   * @param {string[]} [options.config.entry] - List of entry action names.
-   * @param {string[]} [options.config.exit] - List of exit action names.
-   * @param {object} [options.config.always] - Always transition configuration.
-   * @param {object} [options.config.on] - Event transition configurations.
-   * @param {StateNode} options.parent - The parent state node.
+   * @param {hsm.StateNodeConfig} options.config - Configuration object for this state node.
+   * @param {StateNode} [options.parent] - The parent state node.
    */
   constructor({ machine, name, config, parent }) {
-    console.log(`creating state node: ${name}`);
     this.config = config;
     this.parent = parent;
     this.machine = machine;
@@ -49,7 +41,7 @@ class StateNode {
       : new StateEvent({
           machine,
           state: this,
-          config: config.always || {},
+          config: config.always,
           name: `${name}.always`
         });
 
@@ -74,11 +66,9 @@ class StateNode {
   dispatch(eventName, data = {}, bubbles = []) {
     const ev = this.on[eventName];
 
-    // bubble event if necessary
     if (!ev) {
       if (!this.parent) return {};
 
-      console.log(`${this.name} bubbling event: ${eventName}`);
       const results = this.parent.dispatch(eventName, data, [this, ...bubbles]);
 
       this.always(this.machine.context, { type: eventName, data });
@@ -86,7 +76,6 @@ class StateNode {
       return results;
     }
 
-    console.log(`${this.name} dispatching event: ${eventName}`, data);
     const results = {
       bubbles,
       ...ev.execute(this.machine.context, { type: eventName, data })
@@ -99,10 +88,10 @@ class StateNode {
 
   /**
    * Executes entry actions for the state node.
-   * @returns {Array} Results of the entry actions.
+   * @param {object} event - The event triggering entry actions.
+   * @returns {object} Results of the entry actions.
    */
   entry(event) {
-    console.log(`entry: ${this.name}`);
     return this.entryActions
       .map(x => ({
         [x.name]: x.execute(this.machine.context, event)
@@ -112,10 +101,10 @@ class StateNode {
 
   /**
    * Executes exit actions for the state node.
-   * @returns {Array} Results of the exit actions.
+   * @param {object} event - The event triggering exit actions.
+   * @returns {object} Results of the exit actions.
    */
   exit(event) {
-    console.log(`exit: ${this.name}`);
     return this.exitActions
       .map(x => ({
         [x.name]: x.execute(this.machine.context, event)
@@ -125,6 +114,7 @@ class StateNode {
 
   /**
    * Executes the 'always' event for the state node if configured.
+   * @param {object} event - The event triggering the 'always' execution.
    * @returns {object} Result of the 'always' event execution.
    */
   always(event) {

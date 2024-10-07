@@ -119,13 +119,11 @@ class StateMachine {
       if (!target) {
         throw new Error(`Target ${node.target} not found in ${state.name}`);
       }
-      console.log(`Assigning target ${node.target} to ${target.name}`);
       node.target = target;
     };
 
     const resolveEventTargets = state => {
-      Object.entries(state.on).forEach(([event, { nodes }]) => {
-        console.log(`Checking event: ${event}`);
+      Object.entries(state.on).forEach(([_, { nodes }]) => {
         nodes.forEach(node => resolveTarget(node, state));
       });
     };
