@@ -98,9 +98,9 @@ describe('hsm', () => {
     const oldMachineState = machine.state;
     const results = machine.dispatch('LOGOUT');
     expect(results).to.be.an('object');
-    expect(results.entry.length).to.equal(0);
-    expect(results.exit.length).to.equal(0);
-    expect(results.always.length).to.equal(0);
+    expect(results.entry).to.be.undefined;
+    expect(results.exit).to.be.undefined;
+    expect(results.always).to.be.undefined;
     expect(states.actions.logoutUser.executed).to.be.false;
     expect(machine.state).to.equal(oldMachineState);
   });

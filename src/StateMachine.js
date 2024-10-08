@@ -1,5 +1,6 @@
 import StateNode from './StateNode';
 import assert from './utils/assert';
+import trim from './utils/trim';
 
 class StateMachine {
   /**
@@ -49,6 +50,7 @@ class StateMachine {
     }
 
     const result = this.state.dispatch(eventName, data);
+
     if (!result.target) return {};
 
     const exitResult = this.handleExit(result, eventName, data);
@@ -57,12 +59,12 @@ class StateMachine {
       data
     });
 
-    return {
-      actions: result.outputs,
-      exit: exitResult,
-      entry: entryResult,
-      always: result.always
-    };
+    return trim({
+      actions: result.outputs.length ? result.outputs : null,
+      exit: exitResult.length ? exitResult : null,
+      entry: entryResult.length ? entryResult : null,
+      always: result.always.length ? result.always : null
+    });
   }
 
   /**
