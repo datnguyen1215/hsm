@@ -57,7 +57,12 @@ class StateMachine {
       data
     });
 
-    return { actions: result.outputs, exit: exitResult, entry: entryResult };
+    return {
+      actions: result.outputs,
+      exit: exitResult,
+      entry: entryResult,
+      always: result.always
+    };
   }
 
   /**

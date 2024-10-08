@@ -74,9 +74,12 @@ class StateNode {
 
       const results = this.parent.dispatch(eventName, data, [this, ...bubbles]);
 
-      this.always(this.machine.context, { type: eventName, data });
+      const alwaysResults = this.always(this.machine.context, {
+        type: eventName,
+        data
+      });
 
-      return results;
+      return { ...results, always: alwaysResults };
     }
 
     const results = {
@@ -84,9 +87,12 @@ class StateNode {
       ...ev.execute(this.machine.context, { type: eventName, data })
     };
 
-    this.always(this.machine.context, { type: eventName, data });
+    const alwaysResults = this.always(this.machine.context, {
+      type: eventName,
+      data
+    });
 
-    return results;
+    return { ...results, always: alwaysResults };
   }
 
   /**
@@ -121,7 +127,7 @@ class StateNode {
    * @returns {object} Result of the 'always' event execution.
    */
   always(event) {
-    if (!this.alwaysEvent) return {};
+    if (!this.alwaysEvent) return [];
 
     return this.alwaysEvent.execute(this.machine.context, event);
   }
