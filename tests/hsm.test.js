@@ -112,6 +112,5 @@ describe('hsm', () => {
       password: 'password'
     });
     expect(result).to.be.an('object');
-    console.log(result);
   });
 });

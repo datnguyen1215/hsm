@@ -75,13 +75,19 @@ class StateMachine {
    */
   transition(state, event) {
     this.state = state;
-    let entryResults = this.state.entry(event);
+    let entryResults = this.state.dispatch(
+      'hsm.predefined.entry',
+      event.data
+    ).outputs;
 
     while (this.state.initial) {
       const next = this.state.states[this.state.initial];
       if (!next) return entryResults;
       this.state = next;
-      entryResults = [...entryResults, this.state.entry(event)];
+      entryResults = [
+        ...entryResults,
+        ...this.state.dispatch('hsm.predefined.entry', event.data).outputs
+      ];
     }
 
     return entryResults;
@@ -91,7 +97,7 @@ class StateMachine {
    * Starts the state machine, transitioning to the root state.
    */
   start() {
-    this.transition(this.root, { type: 'hsm.start' });
+    this.transition(this.root, { type: 'hsm.predefined.start' });
   }
 
   stop() {
@@ -107,16 +113,22 @@ class StateMachine {
    * @returns {object} Exit results.
    */
   handleExit(result, eventName, data) {
-    let exitResult = {};
+    let exitResult = [];
 
     if (!result.bubbles.length)
-      exitResult = this.state.exit({ type: eventName, data });
+      exitResult = this.state.dispatch('hsm.predefined.exit', {
+        type: eventName,
+        data
+      }).outputs;
 
     while (result.bubbles.length) {
       const bubbleState = result.bubbles.pop();
       exitResult = [
         ...exitResult,
-        ...bubbleState.exit({ type: eventName, data })
+        ...bubbleState.dispatch('hsm.predefined.exit', {
+          type: eventName,
+          data
+        }).outputs
       ];
     }
 
