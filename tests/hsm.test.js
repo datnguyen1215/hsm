@@ -17,7 +17,7 @@ const states = {
 };
 
 const actions = {
-  authenticateUser: async (context, event) => {
+  authenticateUser: async (_, event) => {
     states.actions.authenticateUser.executed = true;
     const { data } = event;
     if (data.username === 'admin' && data.password === 'password')
@@ -25,11 +25,11 @@ const actions = {
 
     return { type: 'AUTH_FAILURE' };
   },
-  saveProfileData: async (context, event) => {
+  saveProfileData: async (_, event) => {
     states.actions.saveProfile.executed = true;
     return { type: 'SAVE_PROFILE', data: event.data };
   },
-  fetchUserData: async (context, event) => {
+  fetchUserData: async () => {
     return { type: 'FETCH_USER_DATA' };
   },
   logoutUser: assign({ user: null })
@@ -61,7 +61,7 @@ describe('hsm', () => {
     expect(machine.setup.guards).to.be.an('object');
     expect(machine.states).to.be.an('object');
 
-    Object.entries(machine.states).forEach(([key, value]) => {
+    Object.entries(machine.states).forEach(([_, value]) => {
       expect(value).to.be.an('object');
       expect(value.name).to.be.a('string');
       expect(value.config).to.be.a('object');
