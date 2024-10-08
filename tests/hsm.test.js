@@ -32,7 +32,10 @@ const actions = {
   fetchUserData: async () => {
     return { type: 'FETCH_USER_DATA' };
   },
-  logoutUser: assign({ user: null })
+  logoutUser: assign({ user: null }),
+  logState: async (_, event) => {
+    console.log(event);
+  }
 };
 
 describe('hsm', () => {
