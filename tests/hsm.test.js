@@ -33,8 +33,8 @@ const actions = {
     return { type: 'FETCH_USER_DATA' };
   },
   logoutUser: assign({ user: null }),
-  logState: async (_, event) => {
-    console.log(event);
+  log: async (_, event) => {
+    console.log(`logging event`, event);
   }
 };
 
@@ -97,6 +97,7 @@ describe('hsm', () => {
     const { expect } = await chai;
     const oldMachineState = machine.state;
     const results = machine.dispatch('LOGOUT');
+    console.log(results);
     expect(results).to.be.an('object');
     expect(results.entry).to.be.undefined;
     expect(results.exit).to.be.undefined;

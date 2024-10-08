@@ -11,7 +11,7 @@ const config = {
     }
   },
   always: {
-    actions: ['logState']
+    actions: ['log']
   },
   states: {
     unauthenticated: {
@@ -24,9 +24,6 @@ const config = {
     },
     authenticating: {
       entry: ['authenticateUser'],
-      always: {
-        actions: ['logState']
-      },
       on: {
         AUTH_SUCCESS: {
           target: 'authenticated',

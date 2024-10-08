@@ -1,5 +1,6 @@
 import Action from './Action';
 import StateEvent from './StateEvent';
+import merge from './utils/merge';
 
 class StateNode {
   /**
@@ -67,6 +68,7 @@ class StateNode {
    * @returns {object} Results of the dispatched event.
    */
   dispatch(eventName, data = {}, bubbles = []) {
+    console.log(`dispatch on ${this.name}`, eventName, data, bubbles);
     const eventObject = { type: eventName, data };
 
     switch (eventName) {
@@ -87,15 +89,15 @@ class StateNode {
 
     if (!ev) return this.bubble(eventName, data, bubbles);
 
-    const results = {
-      bubbles,
-      ...ev.execute(this.machine.context, eventObject)
-    };
-
     const { outputs, ...alwaysResults } = this.dispatch(
       'hsm.predefined.always',
       eventObject
     );
+
+    const results = {
+      bubbles,
+      ...ev.execute(this.machine.context, eventObject)
+    };
 
     return { ...results, ...alwaysResults, always: outputs };
   }
@@ -109,14 +111,15 @@ class StateNode {
    * @returns {object} Results of the event after bubbling and executing 'always' actions.
    */
   bubble(eventName, data = {}, bubbles = []) {
-    if (!this.parent) return {};
-
-    const results = this.parent.dispatch(eventName, data, [this, ...bubbles]);
     const eventObject = { type: eventName, data };
     const { outputs, ...alwaysResults } = this.always(
       this.machine.context,
       eventObject
     );
+
+    if (!this.parent) return { ...alwaysResults, always: outputs };
+
+    const results = this.parent.dispatch(eventName, data, [this, ...bubbles]);
     return { ...results, ...alwaysResults, always: outputs };
   }
 
@@ -152,9 +155,29 @@ class StateNode {
    * @returns {object} Result of the 'always' event execution.
    */
   always(event) {
-    if (!this.alwaysEvent) return { outputs: [] };
+    let result = { outputs: [] };
 
-    return this.alwaysEvent.execute(this.machine.context, event);
+    let state = this;
+
+    if (state.alwaysEvent)
+      result = merge(
+        {},
+        result,
+        state.alwaysEvent.execute(this.machine.context, event)
+      );
+
+    // bubble all the way to root.
+    while (state.parent) {
+      state = state.parent;
+
+      result = merge(
+        {},
+        result,
+        state.dispatch('hsm.predefined.always', event)
+      );
+    }
+
+    return result;
   }
 }
 
