@@ -7,22 +7,26 @@ const config = {
   on: {
     LOGOUT: {
       target: 'unauthenticated',
-      actions: [assign({ user: null })]
+      actions: ['logoutUser']
     }
+  },
+  always: {
+    actions: ['logState']
   },
   states: {
     unauthenticated: {
       id: '#unauthenticated',
       on: {
-        LOGIN: {
-          target: 'authenticating'
-        },
+        LOGIN: 'authenticating',
         // shouldn't do anything
         LOGOUT: {}
       }
     },
     authenticating: {
       entry: ['authenticateUser'],
+      always: {
+        actions: ['logState']
+      },
       on: {
         AUTH_SUCCESS: {
           target: 'authenticated',

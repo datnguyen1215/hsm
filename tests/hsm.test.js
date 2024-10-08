@@ -1,8 +1,39 @@
-import hsm from '../dist/hsm';
+import hsm, { assign } from '../dist/hsm';
 import config from './lib/config';
-import actions from './lib/actions';
-
 const chai = import('chai');
+
+const states = {
+  actions: {
+    authenticateUser: {
+      executed: false
+    },
+    logoutUser: {
+      executed: false
+    },
+    saveProfileData: {
+      executed: false
+    }
+  }
+};
+
+const actions = {
+  authenticateUser: async (context, event) => {
+    states.actions.authenticateUser.executed = true;
+    const { data } = event;
+    if (data.username === 'admin' && data.password === 'password')
+      return { type: 'AUTH_SUCCESS', data: { user: { username } } };
+
+    return { type: 'AUTH_FAILURE' };
+  },
+  saveProfileData: async (context, event) => {
+    states.actions.saveProfile.executed = true;
+    return { type: 'SAVE_PROFILE', data: event.data };
+  },
+  fetchUserData: async (context, event) => {
+    return { type: 'FETCH_USER_DATA' };
+  },
+  logoutUser: assign({ user: null })
+};
 
 describe('hsm', () => {
   it('create should be a function', async () => {
@@ -52,5 +83,32 @@ describe('hsm', () => {
     const { expect } = await chai;
     machine.start();
     expect(machine.state.name).to.equal(`${config.id}.unauthenticated`);
+  });
+
+  it('dispatch() should throw if no eventName provided.', async () => {
+    const { expect } = await chai;
+    expect(() => machine.dispatch()).to.throw('Event name is required');
+  });
+
+  it(`dispatch('LOGOUT') shouldn't change state nor execute any functions`, async () => {
+    const { expect } = await chai;
+    const oldMachineState = machine.state;
+    const results = machine.dispatch('LOGOUT');
+    expect(results).to.be.an('object');
+    expect(results.entry.length).to.equal(0);
+    expect(results.exit.length).to.equal(0);
+    expect(results.always.length).to.equal(0);
+    expect(states.actions.logoutUser.executed).to.be.false;
+    expect(machine.state).to.equal(oldMachineState);
+  });
+
+  it('dispatch() should return an object with actions, exit, and entry keys', async () => {
+    const { expect } = await chai;
+    const result = machine.dispatch('LOGIN', {
+      username: 'admin',
+      password: 'password'
+    });
+    expect(result).to.be.an('object');
+    console.log(result);
   });
 });
