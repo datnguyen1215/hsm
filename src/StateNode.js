@@ -62,41 +62,37 @@ class StateNode {
 
   /**
    * Dispatches an event to the state node.
-   * @param {string} eventName - The event name to dispatch.
-   * @param {object} [data={}] - Optional data to pass with the event.
+   * @param {object} event - The event to dispatch.
    * @param {Array} [bubbles=[]] - Tracks the event bubbling history.
    * @returns {object} Results of the dispatched event.
    */
-  dispatch(eventName, data = {}, bubbles = []) {
-    console.log(`dispatch on ${this.name}`, eventName, data, bubbles);
-    const eventObject = { type: eventName, data };
-
-    switch (eventName) {
+  dispatch(event, bubbles = []) {
+    switch (event.type) {
       case 'hsm.predefined.entry':
-        return { outputs: this.entry(this.machine.context, eventObject) };
+        return { outputs: this.entry(this.machine.context, event) };
 
       case 'hsm.predefined.exit':
-        return { outputs: this.exit(this.machine.context, eventObject) };
+        return { outputs: this.exit(this.machine.context, event) };
 
       case 'hsm.predefined.always':
-        return this.always(this.machine.context, eventObject);
+        return this.always(this.machine.context, event);
 
       default:
         break;
     }
 
-    const ev = this.on[eventName];
+    const ev = this.on[event.type];
 
-    if (!ev) return this.bubble(eventName, data, bubbles);
+    if (!ev) return this.bubble(event, bubbles);
 
     const { outputs, ...alwaysResults } = this.dispatch(
       'hsm.predefined.always',
-      eventObject
+      event
     );
 
     const results = {
       bubbles,
-      ...ev.execute(this.machine.context, eventObject)
+      ...ev.execute(this.machine.context, event)
     };
 
     return { ...results, ...alwaysResults, always: outputs };
@@ -105,21 +101,19 @@ class StateNode {
   /**
    * Bubbles an event up through the state hierarchy if not handled by the current state.
    * Executes 'always' actions for each state during the bubbling process.
-   * @param {string} eventName - The event name to bubble.
-   * @param {object} [data={}] - Optional data to pass with the event.
+   * @param {object} event - The event to bubble.
    * @param {Array} [bubbles=[]] - Tracks the event bubbling history.
    * @returns {object} Results of the event after bubbling and executing 'always' actions.
    */
-  bubble(eventName, data = {}, bubbles = []) {
-    const eventObject = { type: eventName, data };
+  bubble(event, bubbles = []) {
     const { outputs, ...alwaysResults } = this.always(
       this.machine.context,
-      eventObject
+      event
     );
 
     if (!this.parent) return { ...alwaysResults, always: outputs };
 
-    const results = this.parent.dispatch(eventName, data, [this, ...bubbles]);
+    const results = this.parent.dispatch(event, [this, ...bubbles]);
     return { ...results, ...alwaysResults, always: outputs };
   }
 
@@ -169,12 +163,7 @@ class StateNode {
     // bubble all the way to root.
     while (state.parent) {
       state = state.parent;
-
-      result = merge(
-        {},
-        result,
-        state.dispatch('hsm.predefined.always', event)
-      );
+      result = merge({}, result, state.dispatch(event));
     }
 
     return result;

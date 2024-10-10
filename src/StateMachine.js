@@ -49,15 +49,13 @@ class StateMachine {
       return {};
     }
 
-    const result = this.state.dispatch(eventName, data);
+    const event = { type: eventName, data };
+    const result = this.state.dispatch(event);
 
     if (!result.target) return {};
 
-    const exitResult = this.handleExit(result, eventName, data);
-    const entryResult = this.transition(result.target, {
-      type: eventName,
-      data
-    });
+    const exitResult = this.handleExit(result, event);
+    const entryResult = this.transition(result.target, event);
 
     return trim({
       actions: result.outputs.length ? result.outputs : null,
@@ -75,19 +73,16 @@ class StateMachine {
    */
   transition(state, event) {
     this.state = state;
-    let entryResults = this.state.dispatch(
-      'hsm.predefined.entry',
-      event.data
-    ).outputs;
+    let entryResults = this.state.dispatch(event).outputs;
 
     while (this.state.initial) {
       const next = this.state.states[this.state.initial];
+
       if (!next) return entryResults;
+
       this.state = next;
-      entryResults = [
-        ...entryResults,
-        ...this.state.dispatch('hsm.predefined.entry', event.data).outputs
-      ];
+
+      entryResults = [...entryResults, ...this.state.dispatch(event).outputs];
     }
 
     return entryResults;
@@ -108,27 +103,20 @@ class StateMachine {
    * Handles the exit process for a state transition.
    * @private
    * @param {object} result - The result object from dispatch.
-   * @param {string} eventName - The event name.
-   * @param {object} data - The event data.
+   * @param {object} event - The event name.
    * @returns {object} Exit results.
    */
-  handleExit(result, eventName, data) {
+  handleExit(result, event) {
     let exitResult = [];
 
     if (!result.bubbles.length)
-      exitResult = this.state.dispatch('hsm.predefined.exit', {
-        type: eventName,
-        data
-      }).outputs;
+      exitResult = this.state.dispatch('hsm.predefined.exit', event).outputs;
 
     while (result.bubbles.length) {
       const bubbleState = result.bubbles.pop();
       exitResult = [
         ...exitResult,
-        ...bubbleState.dispatch('hsm.predefined.exit', {
-          type: eventName,
-          data
-        }).outputs
+        ...bubbleState.dispatch('hsm.predefined.exit', event).outputs
       ];
     }
 
